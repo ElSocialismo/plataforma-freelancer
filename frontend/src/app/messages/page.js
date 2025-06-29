@@ -1,12 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Navigation from '../components/Navigation';
 
 export default function MessagesPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [conversations, setConversations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -16,6 +17,17 @@ export default function MessagesPage() {
     checkUser();
     fetchConversations();
   }, []);
+
+  useEffect(() => {
+    // Verificar si hay parámetros para iniciar una conversación
+    const freelancerId = searchParams.get('freelancer');
+    const freelancerName = searchParams.get('name');
+    
+    if (freelancerId && currentUser) {
+      // Redirigir directamente a la conversación con el freelancer
+      router.push(`/messages/conversation/${freelancerId}`);
+    }
+  }, [searchParams, currentUser, router]);
 
   const checkUser = async () => {
     const token = localStorage.getItem('authToken');

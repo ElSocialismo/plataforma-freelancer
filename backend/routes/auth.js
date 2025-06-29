@@ -262,7 +262,7 @@ router.get('/me', authenticateJWTWithSupabase, (req, res) => {
 });
 
 // Ruta para verificar token JWT
-router.post('/verify-token', (req, res) => {
+router.post('/verify-token', async (req, res) => {
   const { token } = req.body;
   
   if (!token) {
@@ -272,7 +272,42 @@ router.post('/verify-token', (req, res) => {
   try {
     const jwt = require('jsonwebtoken');
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    res.json({ valid: true, user: decoded });
+    
+    // Obtener información completa del perfil desde la base de datos
+    const { supabase, isSupabaseConfigured } = require('../config/supabase');
+    
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const { data: profile } = await supabase
+          .from('user_profiles')
+          .select('full_name, avatar_url, user_type, email')
+          .eq('user_id', decoded.id)
+          .single();
+        
+        if (profile) {
+          // Combinar información del token con la del perfil
+          const userWithProfile = {
+            ...decoded,
+            full_name: profile.full_name,
+            avatar_url: profile.avatar_url,
+            name: profile.full_name || decoded.email?.split('@')[0] || 'Usuario',
+            avatar: profile.avatar_url
+          };
+          
+          res.json({ valid: true, user: userWithProfile });
+        } else {
+          // Si no hay perfil, devolver solo la información del token
+          res.json({ valid: true, user: { ...decoded, name: decoded.email?.split('@')[0] || 'Usuario' } });
+        }
+      } catch (dbError) {
+        console.error('Error fetching user profile:', dbError);
+        // En caso de error de base de datos, devolver solo la información del token
+        res.json({ valid: true, user: { ...decoded, name: decoded.email?.split('@')[0] || 'Usuario' } });
+      }
+    } else {
+      // Si Supabase no está configurado, devolver solo la información del token
+      res.json({ valid: true, user: { ...decoded, name: decoded.email?.split('@')[0] || 'Usuario' } });
+    }
   } catch (error) {
     res.status(401).json({ valid: false, error: 'Token inválido' });
   }

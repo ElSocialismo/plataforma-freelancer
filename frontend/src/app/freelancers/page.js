@@ -189,6 +189,24 @@ export default function FreelancersPage() {
     }
   };
 
+  const handleContactFreelancer = (freelancer) => {
+    // Verificar que el usuario esté autenticado
+    if (!user) {
+      alert('Debes iniciar sesión para contactar freelancers');
+      router.push('/login');
+      return;
+    }
+
+    // Verificar que el usuario sea un cliente
+    if (user.userType !== 'client') {
+      alert('Solo los clientes pueden contactar freelancers');
+      return;
+    }
+
+    // Redirigir a la página de mensajes con el freelancer seleccionado
+    router.push(`/messages?freelancer=${freelancer.user_id}&name=${encodeURIComponent(freelancer.full_name)}`);
+  };
+
   if (loading && freelancers.length === 0) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -480,7 +498,10 @@ export default function FreelancersPage() {
                         >
                           Ver Perfil
                         </button>
-                        <button className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <button 
+                          onClick={() => handleContactFreelancer(freelancer)}
+                          className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
                           💬 Contactar
                         </button>
                         <button className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500">

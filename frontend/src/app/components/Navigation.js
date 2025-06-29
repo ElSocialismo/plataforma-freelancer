@@ -232,11 +232,12 @@ export default function Navigation() {
                       style={{ display: user.avatar ? 'none' : 'flex' }}
                     >
                       <span className="text-white text-sm font-medium">
-                        {user.name ? user.name.charAt(0).toUpperCase() : 
+                        {user.full_name ? user.full_name.charAt(0).toUpperCase() : 
+                         user.name ? user.name.charAt(0).toUpperCase() : 
                          user.email ? user.email.charAt(0).toUpperCase() : 'U'}
                       </span>
                     </div>
-                    <span className="hidden lg:block">{user.name || user.email?.split('@')[0] || 'Usuario'}</span>
+                    <span className="hidden lg:block">{user.full_name || user.name || user.email?.split('@')[0] || 'Usuario'}</span>
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
@@ -246,7 +247,7 @@ export default function Navigation() {
                   {isMenuOpen && (
                     <div className="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg py-1 z-50 border">
                       <div className="px-4 py-2 border-b">
-                        <p className="text-sm font-medium text-gray-900">{user.name || 'Usuario'}</p>
+                        <p className="text-sm font-medium text-gray-900">{user.full_name || user.name || 'Usuario'}</p>
                         <p className="text-sm text-gray-500">{user.email}</p>
                         <p className="text-xs text-gray-400 capitalize">{userType}</p>
                       </div>
@@ -354,12 +355,13 @@ export default function Navigation() {
                       style={{ display: user.avatar ? 'none' : 'flex' }}
                     >
                       <span className="text-white font-medium">
-                        {user.name ? user.name.charAt(0).toUpperCase() : 
+                        {user.full_name ? user.full_name.charAt(0).toUpperCase() : 
+                         user.name ? user.name.charAt(0).toUpperCase() : 
                          user.email ? user.email.charAt(0).toUpperCase() : 'U'}
                       </span>
                     </div>
                     <div>
-                      <p className="font-medium text-gray-900">{user.name || user.email?.split('@')[0] || 'Usuario'}</p>
+                      <p className="font-medium text-gray-900">{user.full_name || user.name || user.email?.split('@')[0] || 'Usuario'}</p>
                       <p className="text-sm text-gray-500 capitalize">{userType}</p>
                     </div>
                   </div>

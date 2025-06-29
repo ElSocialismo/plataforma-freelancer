@@ -11,6 +11,7 @@ export default function ProfilePage() {
   const [config, setConfig] = useState({ colors: { primary: '#3B82F6', secondary: '#10B981' } });
   const [activeTab, setActiveTab] = useState('overview');
   const [stats, setStats] = useState({ projects: 0, reviews: 0, rating: 0 });
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const router = useRouter();
   const userType = profile?.user_type;
 
@@ -176,6 +177,65 @@ export default function ProfilePage() {
       if (field.key === 'skills') return !profile[field.key] || profile[field.key].length === 0;
       return !profile[field.key] || profile[field.key].trim() === '';
     });
+  };
+
+  const handlePhotoChange = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Validar tipo de archivo
+    if (!file.type.startsWith('image/')) {
+      alert('Por favor selecciona un archivo de imagen válido.');
+      return;
+    }
+
+    // Validar tamaño (máximo 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('La imagen debe ser menor a 5MB.');
+      return;
+    }
+
+    setUploadingPhoto(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('avatar', file);
+
+      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+      const response = await fetch('http://localhost:3001/api/upload-avatar', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formData
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        // Actualizar el perfil con la nueva URL del avatar
+        setProfile(prev => ({
+          ...prev,
+          avatar_url: data.avatar_url
+        }));
+        alert('Foto de perfil actualizada exitosamente!');
+      } else {
+        const errorData = await response.json();
+        alert(errorData.message || 'Error al subir la imagen.');
+      }
+    } catch (error) {
+      console.error('Error uploading photo:', error);
+      alert('Error al subir la imagen. Por favor intenta de nuevo.');
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
+
+  const triggerPhotoUpload = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = handlePhotoChange;
+    input.click();
   };
 
   const renderTabContent = () => {
@@ -532,7 +592,7 @@ export default function ProfilePage() {
           <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 px-8 py-12">
             <div className="flex flex-col md:flex-row items-center md:items-start space-y-4 md:space-y-0 md:space-x-6">
               {/* Avatar */}
-              <div className="relative">
+              <div className="relative group">
                 {profile?.avatar_url ? (
                   <img 
                     src={profile.avatar_url} 
@@ -546,6 +606,27 @@ export default function ProfilePage() {
                     </span>
                   </div>
                 )}
+                
+                {/* Edit Photo Button */}
+                <button 
+                  onClick={triggerPhotoUpload}
+                  disabled={uploadingPhoto}
+                  className={`absolute top-0 right-0 w-8 h-8 rounded-full border-2 border-white shadow-lg flex items-center justify-center transition-all duration-200 opacity-0 group-hover:opacity-100 hover:scale-110 ${
+                    uploadingPhoto 
+                      ? 'bg-gray-400 cursor-not-allowed' 
+                      : 'bg-blue-600 hover:bg-blue-700 cursor-pointer'
+                  }`}
+                  title={uploadingPhoto ? 'Subiendo foto...' : 'Cambiar foto de perfil'}
+                >
+                  {uploadingPhoto ? (
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  ) : (
+                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                    </svg>
+                  )}
+                </button>
+                
                 <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-green-500 rounded-full border-4 border-white flex items-center justify-center">
                   <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
